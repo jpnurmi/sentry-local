@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(sentry-dmp LANGUAGES C CXX)
+project(sentry-local LANGUAGES C CXX)
 
 set(SENTRY_NATIVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sentry-native" CACHE PATH
     "Path to the sentry-native checkout to test")

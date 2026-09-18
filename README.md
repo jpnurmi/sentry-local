@@ -1,4 +1,4 @@
-# Sentry DMP playground
+# Local Sentry playground
 
 Run `make` for prerequisites, configuration, and available commands.
 
