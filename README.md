@@ -3,10 +3,10 @@
 Run `make` for prerequisites, configuration, and available commands.
 
 - **Linux/macOS:** `make sentry`, then `make relay` in another terminal.
-- **Hang test:** `make hang SENTRY_DSN="<dsn>"`.
-- **C++ exception test:** `make cpp SENTRY_DSN="<dsn>"`.
 
 The targets require existing checkouts and print setup instructions as needed.
+Test behavior and expected results are documented with the implementations in
+[`src/`](src/).
 
 `make build` builds test apps available on the current platform;
 `make debug-files-upload` builds and uploads their debug files without capturing
@@ -73,12 +73,7 @@ Configuration is in the ignored `.local/` directory. Docker services and databas
 are shared with other Sentry checkouts. Ctrl+C in `make sentry` stops its workers
 and dependencies too. Stop `make relay` with Ctrl+C in its terminal.
 
-## Hang test
-
-Exercises the watchdog-as-crasher case in
-[sentry#97529](https://github.com/getsentry/sentry/issues/97529): a main-thread
-hang triggers a watchdog crash. An ordinary crash at
-that same site provides a comparison with a responsive main thread.
+## Client
 
 On Windows, install Visual Studio's **Desktop development with C++** workload, CMake 3.18+,
 Git, GNU Make, and [sentry-cli](https://docs.sentry.io/cli/installation/).
@@ -88,36 +83,12 @@ sentry-cli reads `.sentryclirc`: `[defaults]` supports `url`, `org`, and `projec
 `[auth]` supports `token`. The file is ignored by Git. Keep your usual settings;
 local uploads can override them per command.
 
-Run both cases using the DSN from **Client Keys (DSN)**:
+Run a test target shown by `make` using the DSN from **Client Keys (DSN)**.
+The target builds and uploads its debug files before capturing events:
 
 ```bash
-make hang SENTRY_DSN="<dsn>"
+make <target> SENTRY_DSN="<dsn>"
 ```
-
-This builds, uploads debug files, and captures two events:
-
-- `crash`: the watchdog crashes while the main thread keeps sending heartbeats.
-- `wait-condition`: the main thread hangs in `wait_for_condition`.
-
-Make continues after each deliberate crash. The watchdog calls `sentry_crash()`
-from the same location in both runs. The console prints both thread IDs,
-and the `test.case` tag identifies the case.
-
-The static build uses the SDK's internal thread, synchronization, and thread-ID
-helpers on Windows, Linux, and macOS.
-
-The SDK's native backend captures and uploads **one crash event per run** in
-minidump mode, so the server derives stacks from the dump. The dump identifies
-the watchdog as the exception thread. Only the hang case installs `on_crash`:
-it adds an `AppHang` exception whose `thread_id` references the main thread
-and sets both threads' `crashed` flags to false. The callback
-uses `level: error` and `handled: true`, matching the SDK's hang reports, and
-supplies no stack trace. The ordinary crash keeps the SDK's event unchanged.
-
-On an unmodified server, check whether both events group into **one issue
-using the watchdog stack**. With the thread-selection fixes, expect **two
-issues**: the ordinary crash uses the watchdog stack, and the hang uses the
-main-thread stack. Inspect Event Grouping Information as well as the thread stacks.
 
 Use values from your target Sentry instance. Tokens need **Organization → Read** and
 **Release → Admin**. **For local Sentry**, replace `dev.getsentry.net:8000` in the
@@ -128,42 +99,13 @@ Pass that DSN and override the upload URL, organization, project, and token for
 this invocation:
 
 ```bash
-make hang \
+make <target> \
     SENTRY_DSN="http://<key>@<server-lan-ip>:7899/<project-id>" \
     SENTRY_URL="http://<server-lan-ip>:8001/" \
     SENTRY_ORG="<local-org>" \
     SENTRY_PROJECT="<local-project>" \
     SENTRY_AUTH_TOKEN="<local-token>"
 ```
-
-## C++ exception test
-
-Exercises server-side processing of the native event and minidump produced for
-an uncaught C++ exception. The build enables the C++ integration with
-`SENTRY_INTEGRATION_CPP`; the app throws a `std::runtime_error` and uses
-`SENTRY_CRASH_REPORTING_MODE_NATIVE_WITH_MINIDUMP` so Relay and Sentry can be
-developed against both payloads.
-
-Run the case using the DSN from **Client Keys (DSN)**:
-
-```bash
-make cpp SENTRY_DSN="<dsn>"
-```
-
-The event has the `test.case=cpp-exception` tag. Before running it, set
-`SENTRY_NATIVE_DIR` to a sentry-native checkout containing the C++ integration.
-Use the local DSN and sentry-cli overrides described for the hang test when
-testing local Relay and Sentry checkouts.
-
-The native event contains an exception with:
-
-- `type`: a platform-specific name ending in `runtime_error`
-- `value`: `something went wrong`
-- `mechanism.type`: `cpp_exception`
-- `mechanism.handled`: `false`
-
-Relay and Sentry should preserve this metadata while using the minidump for the
-exception stack.
 
 ## Configuration
 

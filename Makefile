@@ -27,7 +27,7 @@ endif
 
 SENTRY_ENV = PATH="$$PWD/.venv/bin:$$PWD/.devenv/bin:$$PWD/node_modules/.bin:$$PATH"
 
-.PHONY: help build debug-files-upload hang cpp sentry relay ip
+.PHONY: help build debug-files-upload app-hang cpp-exception sentry relay ip
 
 define HELP
 Sentry minidump precedence
@@ -40,8 +40,8 @@ Server:
 Client:
   make build                     Build test apps
   make debug-files-upload        Upload debug files
-  make hang                      Run watchdog crash and hang cases
-  make cpp                       Run uncaught C++ exception case
+  make app-hang                  Run watchdog crash and app hang cases
+  make cpp-exception             Run uncaught C++ exception case
 
 Variables:
   SENTRY_DIR                     Path to getsentry/sentry (default: ../sentry)
@@ -68,14 +68,14 @@ build: $(SENTRY_NATIVE_DIR)/CMakeLists.txt
 debug-files-upload: build
 	sentry-cli debug-files upload --wait build/bin/Debug
 
-hang: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
+app-hang: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
 	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report; local captures use the server's LAN address and port 7899))
-	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./hang$(if $(filter Windows_NT,$(OS)),.exe) crash
-	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./hang$(if $(filter Windows_NT,$(OS)),.exe) wait-condition
+	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./app-hang$(if $(filter Windows_NT,$(OS)),.exe) crash
+	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./app-hang$(if $(filter Windows_NT,$(OS)),.exe) wait-condition
 
-cpp: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
+cpp-exception: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
 	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report; local captures use the server's LAN address and port 7899))
-	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./cpp_exception$(if $(filter Windows_NT,$(OS)),.exe)
+	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./cpp-exception$(if $(filter Windows_NT,$(OS)),.exe)
 
 ifeq ($(OS),Windows_NT)
 sentry relay ip:

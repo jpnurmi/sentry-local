@@ -70,7 +70,7 @@ options.update(
 )
 config.write_text(yaml.safe_dump(options, sort_keys=False))
 
-print(fr"""
+print(rf"""
 Local Sentry: http://{os.environ['SENTRY_HOST']}:8000
 Login: admin@sentry.io / admin
 
@@ -81,16 +81,16 @@ Login: admin@sentry.io / admin
 2. Run make relay in another terminal. Wait for Relay to be ready.
 
 3. Choose a test with make on the client machine.
-   Example: the hang test:
+   Example: the app hang test:
 
-   make hang \
+   make app-hang \
        SENTRY_DSN="http://<key>@<server-lan-ip>:7899/<project-id>" \
        SENTRY_URL="http://<server-lan-ip>:8001/" \
        SENTRY_ORG="<local-org>" \
        SENTRY_PROJECT="<local-project>" \
        SENTRY_AUTH_TOKEN="<local-token>"
 
-   Replace `hang` with `cpp` for the C++ exception test.
+   Replace `app-hang` with `cpp-exception` for the C++ exception test.
 
 Run make ip on this server for <server-lan-ip>.
 Keep the key and project ID from the DSN.

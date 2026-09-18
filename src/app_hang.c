@@ -1,3 +1,36 @@
+/*
+ * Watchdog-as-crasher reproduction for:
+ * https://github.com/getsentry/sentry/issues/97529
+ *
+ * A main-thread hang triggers a watchdog crash. An ordinary crash at the same
+ * site provides a comparison with a responsive main thread. `make app-hang`
+ * builds, uploads debug files, and captures two events:
+ *
+ * - `crash`: the watchdog crashes while the main thread keeps sending
+ *   heartbeats.
+ * - `wait-condition`: the main thread hangs in `wait_for_condition`.
+ *
+ * Make continues after each deliberate crash. The watchdog calls
+ * `sentry_crash()` from the same location in both runs. The console prints both
+ * thread IDs, and the `test.case` tag identifies the case.
+ *
+ * The static build uses the SDK's internal thread, synchronization, and
+ * thread-ID helpers on Windows, Linux, and macOS.
+ *
+ * The SDK's native backend captures and uploads one crash event per run in
+ * minidump mode, so the server derives stacks from the dump. The dump identifies
+ * the watchdog as the exception thread. Only the hang case installs `on_crash`:
+ * it adds an `AppHang` exception whose `thread_id` references the main thread and
+ * sets both threads' `crashed` flags to false. The callback uses `level: error`
+ * and `handled: true`, matching the SDK's hang reports, and supplies no stack
+ * trace. The ordinary crash keeps the SDK's event unchanged.
+ *
+ * On an unmodified server, check whether both events group into one issue using
+ * the watchdog stack. With the thread-selection fixes, expect two issues: the
+ * ordinary crash uses the watchdog stack, and the hang uses the main-thread
+ * stack. Inspect Event Grouping Information as well as the thread stacks.
+ */
+
 #include "sentry_boot.h"
 
 #include "sentry_app_hang_latch.h"
@@ -105,7 +138,7 @@ main(int argc, char **argv)
         || (strcmp(argv[1], "crash") != 0
             && strcmp(argv[1], "wait-condition") != 0)) {
         puts("Usage:\n"
-             "  make hang SENTRY_DSN=\"<dsn>\"\n\n"
+             "  make app-hang SENTRY_DSN=\"<dsn>\"\n\n"
              "Each run deliberately crashes the watchdog and sends one crash event.\n"
              "Compare whether an ordinary crash and a hang group together.");
         return argc == 1 ? 0 : 1;
