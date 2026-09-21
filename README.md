@@ -91,12 +91,13 @@ make <target> SENTRY_DSN="<dsn>"
 ```
 
 Use values from your target Sentry instance. Tokens need **Organization → Read** and
-**Release → Admin**. **For local Sentry**, replace `dev.getsentry.net:8000` in the
-displayed DSN with the server's LAN address and port **7899**, keeping the key
-and project ID. The resulting DSN is `http://<key>@<server-lan-ip>:7899/<project-id>`.
-Run `make ip` on the server to print its IPv4 address from the default network interface.
-Pass that DSN and override the upload URL, organization, project, and token for
-this invocation:
+**Release → Admin**. When everything runs on the same machine, use the displayed
+DSN unchanged and set `SENTRY_URL` to `http://dev.getsentry.net:8000/`.
+
+When the client runs on another machine, replace `dev.getsentry.net` in the DSN
+with the server's LAN address and change the port to Relay's port **7899**. Use
+port **8001** for `SENTRY_URL`. Run `make ip` on the server to print its IPv4
+address from the default network interface. A cross-machine invocation is:
 
 ```bash
 make <target> \
@@ -108,6 +109,19 @@ make <target> \
 ```
 
 ## Configuration
+
+Copy `.env.example` to `.env` to keep Sentry credentials and other client
+settings in a local file:
+
+```sh
+cp .env.example .env
+```
+
+The Makefile loads `.env` automatically and exports its supported variables to
+child processes. `.env` is ignored by Git; `.env.example` contains placeholders
+only and remains tracked. Use unquoted `KEY=value` entries. Values passed on the
+`make` command line take precedence over `.env`. `app-hang` and `cpp-exception`
+default `SENTRY_PROJECT` to their respective target names when it is unset.
 
 Set `SENTRY_DIR`, `RELAY_DIR`, and `SENTRY_NATIVE_DIR` to existing checkouts in
 `Makefile.local`; use forward slashes in Windows paths. Defaults are `../sentry`,

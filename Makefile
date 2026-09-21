@@ -1,5 +1,6 @@
 # optional machine-specific overrides; kept out of Git
 -include Makefile.local
+-include .env
 
 .DEFAULT_GOAL := help
 
@@ -20,6 +21,7 @@ RELAY_CONF ?= $(CURDIR)/.local/relay
 SENTRY_HOST ?= dev.getsentry.net
 
 export SENTRY_CONF RELAY_CONF SENTRY_HOST
+export SENTRY_DSN SENTRY_URL SENTRY_ORG SENTRY_PROJECT SENTRY_AUTH_TOKEN
 
 ifneq ($(OS),Windows_NT)
 export PATH := $(HOME)/.cargo/bin:$(HOME)/.local/bin:$(HOME)/.local/share/sentry-devenv/bin:$(PATH)
@@ -49,8 +51,8 @@ Variables:
   RELAY_DIR                      Path to getsentry/relay (default: ../relay)
   SENTRY_NATIVE_DIR              Path to getsentry/sentry-native (default: ../sentry-native)
   SENTRY_DSN                     DSN for crash reports (required)
-  SENTRY_URL                     Sentry API URL for debug files (local: http://<server>:8001/)
-  SENTRY_PROJECT                 Project slug for debug files
+  SENTRY_URL                     Sentry API URL for debug files (local: http://dev.getsentry.net:8000/)
+  SENTRY_PROJECT                 Project slug for debug files (default: target name for test targets)
   SENTRY_ORG                     Organization slug for debug files
   SENTRY_AUTH_TOKEN              Auth token for debug file uploads (Organization: Read; Release: Admin)
 endef
@@ -69,13 +71,15 @@ build: $(SENTRY_NATIVE_DIR)/CMakeLists.txt
 debug-files-upload: build
 	sentry-cli debug-files upload --wait build/bin/Debug
 
+app-hang: export SENTRY_PROJECT := $(or $(SENTRY_PROJECT),app-hang)
 app-hang: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
-	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report; local captures use the server's LAN address and port 7899))
+	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report))
 	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./app-hang$(if $(filter Windows_NT,$(OS)),.exe) crash
 	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./app-hang$(if $(filter Windows_NT,$(OS)),.exe) wait-condition
 
+cpp-exception: export SENTRY_PROJECT := $(or $(SENTRY_PROJECT),cpp-exception)
 cpp-exception: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
-	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report; local captures use the server's LAN address and port 7899))
+	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report))
 	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./cpp-exception$(if $(filter Windows_NT,$(OS)),.exe)
 
 ifeq ($(OS),Windows_NT)
