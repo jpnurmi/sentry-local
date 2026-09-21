@@ -27,12 +27,13 @@ endif
 
 SENTRY_ENV = PATH="$$PWD/.venv/bin:$$PWD/.devenv/bin:$$PWD/node_modules/.bin:$$PATH"
 
-.PHONY: help build debug-files-upload app-hang cpp-exception sentry relay ip
+.PHONY: help build debug-files-upload app-hang cpp-exception sync sentry relay ip
 
 define HELP
 Sentry minidump precedence
 
 Server:
+  make sync                      Update Sentry checkout dependencies
   make sentry                    Set up and start Sentry in one terminal
   make relay                     Build and start Relay in another terminal
   make ip                        Print the server's IPv4 address for client DSN
@@ -78,11 +79,14 @@ cpp-exception: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
 	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./cpp-exception$(if $(filter Windows_NT,$(OS)),.exe)
 
 ifeq ($(OS),Windows_NT)
-sentry relay ip:
+sync sentry relay ip:
 	$(error make $@ requires Linux or macOS; run make for the workflow)
 else
 $(SENTRY_DIR)/.venv/bin/devservices:
 	bash scripts/bootstrap.sh sentry "$(SENTRY_DIR)"
+
+sync: $(SENTRY_DIR)/.venv/bin/devservices
+	cd "$(SENTRY_DIR)" && $(SENTRY_ENV) .venv/bin/devenv sync
 
 sentry: $(SENTRY_DIR)/.venv/bin/devservices
 	cd "$(SENTRY_DIR)" && $(SENTRY_ENV) .venv/bin/sentry init --dev --no-clobber

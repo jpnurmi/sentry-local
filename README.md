@@ -52,7 +52,7 @@ make relay
 This installs rustup if missing and updates stable Rust.
 It then builds and starts Relay with that toolchain.
 Rerun it after changing Relay code. After changing Sentry dependencies, run
-`devenv sync` in its checkout with the same `SENTRY_CONF` used by Make.
+`make sync` from this repository.
 Make adds the uv, Rust, and devenv installation directories to `PATH`; add them
 to your shell profile if you also run those tools directly:
 
