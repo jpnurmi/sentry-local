@@ -56,9 +56,10 @@ static bool started;
 static uint64_t main_id;
 
 static sentry_value_t
-on_crash(const sentry_ucontext_t *uctx, sentry_value_t event, void *user_data)
+on_crash(const sentry_ucontext_t* uctx, sentry_value_t event, sentry_hint_t* hint, void* user_data)
 {
     (void)uctx;
+    (void)hint;
     (void)user_data;
 
     sentry_value_set_by_key(event, "level", sentry_value_new_string("error"));
