@@ -1,6 +1,7 @@
 # optional machine-specific overrides; kept out of Git
 -include Makefile.local
 -include .env
+-include $(addprefix .env.,$(MAKECMDGOALS))
 
 .DEFAULT_GOAL := help
 

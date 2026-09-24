@@ -2,6 +2,8 @@
 /.local/
 /Makefile.local
 /.env
+/.env.*
+!/.env.example
 /.sentryclirc
 /.sentry-native/
 __pycache__/
