@@ -110,7 +110,9 @@ sentry: $(SENTRY_DIR)/.venv/bin/devservices
 relay:
 	@test -f "$(RELAY_CONF)/credentials.json" || { echo "Run make sentry first to create the Relay configuration."; exit 1; }
 	bash scripts/bootstrap.sh relay "$(RELAY_DIR)"
-	cd "$(RELAY_DIR)" && rustup run stable cargo run --locked --all-features --package relay -- --config "$(RELAY_CONF)" run
+	# TODO: remove --release when debug relay processes a "sessions" item with two aggregates and no item_count without panic:
+	# "New item has 2 items in category 'session', but original (after emitted outcomes) only has 1 left" (relay-server/src/managed/managed.rs:949)
+	cd "$(RELAY_DIR)" && rustup run stable cargo run --release --locked --all-features --package relay -- --config "$(RELAY_CONF)" run
 
 ip:
 	@case "$$(uname -s)" in \
