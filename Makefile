@@ -106,6 +106,7 @@ sentry: $(SENTRY_DIR)/.venv/bin/devservices
 	.venv/bin/devservices toggle relay local; \
 	.venv/bin/devservices up --mode ingest; \
 	.venv/bin/devservices up --mode symbolicator; \
+	.venv/bin/sentry execfile "$(CURDIR)/scripts/defaults.py"; \
 	.venv/bin/sentry devserver --client-hostname "$(SENTRY_HOST)" 0.0.0.0:8000
 
 relay:
