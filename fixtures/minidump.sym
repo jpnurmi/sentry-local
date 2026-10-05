@@ -1,0 +1,4 @@
+MODULE Linux x86_64 5646C995754B5A428C93AE4BB8FDF22F0 minidump-fixture.so
+FUNC 1000 100 0 wait_for_condition
+FUNC 2000 100 0 wait_for_completion
+FUNC 3000 100 0 main

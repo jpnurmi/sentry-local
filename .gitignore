@@ -8,5 +8,6 @@
 /.sentry-native/
 __pycache__/
 *.dmp
+!/fixtures/minidump.dmp
 *.exe
 *.pdb

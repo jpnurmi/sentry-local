@@ -5,7 +5,7 @@ set(SENTRY_NATIVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sentry-native" CACHE PATH
     "Path to the sentry-native checkout to test")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 set(CMAKE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
-set(SENTRY_BACKEND native CACHE STRING "" FORCE)
+set(SENTRY_BACKEND native CACHE STRING "")
 set(SENTRY_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(SENTRY_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SENTRY_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -21,6 +21,11 @@ target_link_libraries(app-hang PRIVATE sentry)
 
 add_executable(cpp-exception src/cpp_exception.cpp)
 target_link_libraries(cpp-exception PRIVATE sentry)
+
+add_executable(minidump src/minidump.c)
+target_compile_definitions(minidump PRIVATE
+    FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/minidump.dmp")
+target_link_libraries(minidump PRIVATE sentry)
 
 if(APPLE)
     add_custom_command(TARGET app-hang POST_BUILD

@@ -120,8 +120,9 @@ cp .env.example .env
 The Makefile loads `.env` automatically and exports its supported variables to
 child processes. `.env` is ignored by Git; `.env.example` contains placeholders
 only and remains tracked. Use unquoted `KEY=value` entries. Values passed on the
-`make` command line take precedence over `.env`. `app-hang` and `cpp-exception`
-default `SENTRY_PROJECT` to their respective target names when it is unset.
+`make` command line take precedence over `.env`. `app-hang`, `cpp-exception`, and
+`minidump` default `SENTRY_PROJECT` to their respective target names when it is
+unset.
 
 Set `SENTRY_DIR`, `RELAY_DIR`, and `SENTRY_NATIVE_DIR` to existing checkouts in
 `Makefile.local`; use forward slashes in Windows paths. Defaults are `../sentry`,

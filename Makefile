@@ -30,7 +30,7 @@ endif
 
 SENTRY_ENV = PATH="$$PWD/.venv/bin:$$PWD/.devenv/bin:$$PWD/node_modules/.bin:$$PATH"
 
-.PHONY: help build debug-files-upload app-hang cpp-exception sync sentry relay ip
+.PHONY: help build debug-files-upload app-hang cpp-exception minidump sync sentry relay ip
 
 define HELP
 Sentry minidump precedence
@@ -46,6 +46,7 @@ Client:
   make debug-files-upload        Upload debug files
   make app-hang                  Run watchdog crash and app hang cases
   make cpp-exception             Run uncaught C++ exception case
+  make minidump                  Run exceptionless minidump thread-selection cases
 
 Variables:
   SENTRY_DIR                     Path to getsentry/sentry (default: ../sentry)
@@ -82,6 +83,14 @@ cpp-exception: export SENTRY_PROJECT := $(or $(SENTRY_PROJECT),cpp-exception)
 cpp-exception: $(if $(strip $(SENTRY_DSN)),debug-files-upload)
 	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the crash report))
 	-@cmake -E chdir build/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./cpp-exception$(if $(filter Windows_NT,$(OS)),.exe)
+
+minidump: export SENTRY_PROJECT := $(or $(SENTRY_PROJECT),minidump)
+minidump:
+	$(if $(strip $(SENTRY_DSN)),,$(error Set SENTRY_DSN for the minidump report))
+	cmake -S . -B build/inproc -DSENTRY_NATIVE_DIR:PATH="$(SENTRY_NATIVE_DIR)" -DSENTRY_BACKEND=inproc -DCMAKE_BUILD_TYPE=Debug
+	cmake --build build/inproc --config Debug --target minidump
+	sentry-cli debug-files upload --wait fixtures/minidump.sym
+	@cmake -E chdir build/inproc/bin/Debug cmake -E env "SENTRY_DSN=$(SENTRY_DSN)" ./minidump$(if $(filter Windows_NT,$(OS)),.exe)
 
 ifeq ($(OS),Windows_NT)
 sync sentry relay ip:
