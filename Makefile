@@ -46,7 +46,7 @@ Client:
   make debug-files-upload        Upload debug files
   make app-hang                  Run watchdog crash and app hang cases
   make cpp-exception             Run uncaught C++ exception case
-  make minidump                  Run exceptionless minidump thread-selection cases
+  make minidump                  Run thread-selection events with alternating minidumps
 
 Variables:
   SENTRY_DIR                     Path to getsentry/sentry (default: ../sentry)

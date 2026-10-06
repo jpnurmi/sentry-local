@@ -24,7 +24,8 @@ target_link_libraries(cpp-exception PRIVATE sentry)
 
 add_executable(minidump src/minidump.c)
 target_compile_definitions(minidump PRIVATE
-    FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/minidump.dmp")
+    FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/minidump.dmp"
+    FIXTURE_SECOND_PATH="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/minidump-second.dmp")
 target_link_libraries(minidump PRIVATE sentry)
 
 if(APPLE)

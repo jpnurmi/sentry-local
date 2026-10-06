@@ -9,5 +9,6 @@
 __pycache__/
 *.dmp
 !/fixtures/minidump.dmp
+!/fixtures/minidump-second.dmp
 *.exe
 *.pdb
